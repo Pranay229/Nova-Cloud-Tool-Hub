@@ -16,18 +16,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
 
-async function handleSignInWithGoogle() {
-  setError('');
-  setGoogleLoading(true);
-  
-  try {
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError(error.message || 'Failed to sign in with Google. Please try again.');
-    }
-  } catch (err) {
-}
-
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
