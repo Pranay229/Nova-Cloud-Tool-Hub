@@ -40,21 +40,21 @@ export function Base64Tool() {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           Input
         </label>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
+          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm text-gray-100 placeholder-gray-500"
           rows={6}
           placeholder="Enter text to encode or Base64 to decode..."
         />
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{error}</p>
+        <div className="p-4 bg-red-900/30 border border-red-800 rounded-lg">
+          <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
 
@@ -78,22 +78,22 @@ export function Base64Tool() {
       {output && (
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-300">
               Output
             </label>
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-2 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600">Copied!</span>
+                  <Check className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-green-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Copy</span>
+                  <Copy className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Copy</span>
                 </>
               )}
             </button>
@@ -101,7 +101,7 @@ export function Base64Tool() {
           <textarea
             value={output}
             readOnly
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm resize-none"
+            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg font-mono text-sm resize-none text-gray-100"
             rows={6}
           />
         </div>

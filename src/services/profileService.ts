@@ -104,7 +104,25 @@ export const profileService = {
       return null;
     }
 
-    const fileExt = file.name.split('.').pop();
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Only images are allowed.');
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error('File size exceeds 5MB limit.');
+    }
+
+    // Validate file extension
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (!fileExt || !allowedExtensions.includes(fileExt)) {
+      throw new Error('Invalid file extension.');
+    }
+
     const fileName = `${userData.user.id}-${Math.random()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 

@@ -40,25 +40,25 @@ export function ToolContainer({ toolId, onBack }: ToolContainerProps) {
       default:
         return (
           <div className="text-center py-12">
-            <p className="text-gray-600">This tool is coming soon!</p>
+            <p className="text-gray-400">This tool is coming soon!</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-200 mb-8 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Tools</span>
         </button>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+          <h1 className="text-3xl font-bold text-gray-100 mb-8">
             {toolTitles[toolId] || 'Tool'}
           </h1>
           {renderTool()}

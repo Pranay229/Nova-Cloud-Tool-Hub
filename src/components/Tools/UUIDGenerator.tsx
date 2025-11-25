@@ -24,18 +24,18 @@ export function UUIDGenerator() {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           Number of UUIDs
         </label>
         <input
           type="number"
           value={count}
           onChange={(e) => setCount(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
           min="1"
           max="100"
         />
-        <p className="text-sm text-gray-500 mt-1">Generate 1-100 UUIDs at once</p>
+        <p className="text-sm text-gray-400 mt-1">Generate 1-100 UUIDs at once</p>
       </div>
 
       <button
@@ -49,29 +49,29 @@ export function UUIDGenerator() {
       {uuids.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="font-semibold text-gray-900">Generated UUIDs</span>
+            <span className="font-semibold text-gray-100">Generated UUIDs</span>
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600">Copied!</span>
+                  <Check className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-green-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Copy All</span>
+                  <Copy className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Copy All</span>
                 </>
               )}
             </button>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto">
+          <div className="p-4 bg-gray-700/50 rounded-lg max-h-96 overflow-y-auto border border-gray-600">
             <div className="space-y-2">
               {uuids.map((uuid, index) => (
-                <div key={index} className="font-mono text-sm text-gray-700 p-2 bg-white rounded border border-gray-200">
+                <div key={index} className="font-mono text-sm text-gray-200 p-2 bg-gray-800 rounded border border-gray-600">
                   {uuid}
                 </div>
               ))}

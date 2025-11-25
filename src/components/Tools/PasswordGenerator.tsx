@@ -62,7 +62,7 @@ export function PasswordGenerator() {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           Password Length: {length}
         </label>
         <input
@@ -73,7 +73,7 @@ export function PasswordGenerator() {
           min="8"
           max="64"
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
           <span>8</span>
           <span>64</span>
         </div>
@@ -87,7 +87,7 @@ export function PasswordGenerator() {
             onChange={(e) => setIncludeUppercase(e.target.checked)}
             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-700">Include Uppercase (A-Z)</span>
+          <span className="text-gray-300">Include Uppercase (A-Z)</span>
         </label>
 
         <label className="flex items-center gap-3 cursor-pointer">
@@ -97,7 +97,7 @@ export function PasswordGenerator() {
             onChange={(e) => setIncludeLowercase(e.target.checked)}
             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-700">Include Lowercase (a-z)</span>
+          <span className="text-gray-300">Include Lowercase (a-z)</span>
         </label>
 
         <label className="flex items-center gap-3 cursor-pointer">
@@ -107,7 +107,7 @@ export function PasswordGenerator() {
             onChange={(e) => setIncludeNumbers(e.target.checked)}
             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-700">Include Numbers (0-9)</span>
+          <span className="text-gray-300">Include Numbers (0-9)</span>
         </label>
 
         <label className="flex items-center gap-3 cursor-pointer">
@@ -117,7 +117,7 @@ export function PasswordGenerator() {
             onChange={(e) => setIncludeSymbols(e.target.checked)}
             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-700">Include Symbols (!@#$%...)</span>
+          <span className="text-gray-300">Include Symbols (!@#$%...)</span>
         </label>
       </div>
 
@@ -131,36 +131,36 @@ export function PasswordGenerator() {
 
       {password && (
         <div className="space-y-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold text-gray-900">Generated Password</span>
+              <span className="font-semibold text-gray-100">Generated Password</span>
               <button
                 onClick={copyToClipboard}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4 text-green-400" />
                 ) : (
-                  <Copy className="w-4 h-4 text-gray-600" />
+                  <Copy className="w-4 h-4 text-gray-400" />
                 )}
               </button>
             </div>
-            <p className="text-lg font-mono text-gray-700 break-all">{password}</p>
+            <p className="text-lg font-mono text-gray-200 break-all">{password}</p>
           </div>
 
           {strength && (
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Password Strength</span>
+                <span className="text-sm font-medium text-gray-300">Password Strength</span>
                 <span className={`text-sm font-semibold ${
-                  strength.label === 'Weak' ? 'text-red-600' :
-                  strength.label === 'Medium' ? 'text-yellow-600' :
-                  'text-green-600'
+                  strength.label === 'Weak' ? 'text-red-400' :
+                  strength.label === 'Medium' ? 'text-yellow-400' :
+                  'text-green-400'
                 }`}>
                   {strength.label}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
                   className={`${strength.color} h-2 rounded-full transition-all duration-300`}
                   style={{ width: strength.width }}

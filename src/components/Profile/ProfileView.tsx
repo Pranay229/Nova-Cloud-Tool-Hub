@@ -33,20 +33,20 @@ export function ProfileView() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8">
-        <div className="text-center text-gray-600">Loading profile...</div>
+      <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+        <div className="text-center text-gray-400">Loading profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8">
+    <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Profile</h2>
         {!editing && (
           <button
             onClick={() => setEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors border border-blue-800/50"
           >
             <Edit2 className="w-4 h-4" />
             Edit
@@ -60,24 +60,24 @@ export function ProfileView() {
             <User className="w-10 h-10 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-100">
               {profile?.full_name || 'User'}
             </h3>
-            <p className="text-gray-600">{user?.email}</p>
+            <p className="text-gray-400">{user?.email}</p>
           </div>
         </div>
 
         {editing ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Full Name
               </label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 placeholder-gray-500"
                 placeholder="Enter your full name"
               />
             </div>
@@ -94,7 +94,7 @@ export function ProfileView() {
                   setEditing(false);
                   setFullName(profile?.full_name || '');
                 }}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                className="flex-1 bg-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors border border-gray-600"
               >
                 Cancel
               </button>
@@ -102,12 +102,12 @@ export function ProfileView() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 text-gray-600">
+            <div className="flex items-center gap-3 text-gray-400">
               <Mail className="w-5 h-5" />
               <span>{user?.email}</span>
             </div>
 
-            <div className="flex items-center gap-3 text-gray-600">
+            <div className="flex items-center gap-3 text-gray-400">
               <Calendar className="w-5 h-5" />
               <span>
                 Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}

@@ -36,34 +36,34 @@ export function HashGenerator() {
   };
 
   const HashResult = ({ label, value }: { label: string; value: string }) => (
-    <div className="p-4 bg-gray-50 rounded-lg">
+    <div className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
       <div className="flex justify-between items-center mb-2">
-        <span className="font-semibold text-gray-900">{label}</span>
+        <span className="font-semibold text-gray-100">{label}</span>
         <button
           onClick={() => copyToClipboard(value, label)}
-          className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
         >
           {copied === label ? (
-            <Check className="w-4 h-4 text-green-600" />
+            <Check className="w-4 h-4 text-green-400" />
           ) : (
-            <Copy className="w-4 h-4 text-gray-600" />
+            <Copy className="w-4 h-4 text-gray-400" />
           )}
         </button>
       </div>
-      <p className="text-sm text-gray-600 break-all font-mono">{value || 'Generate a hash to see results'}</p>
+      <p className="text-sm text-gray-300 break-all font-mono">{value || 'Generate a hash to see results'}</p>
     </div>
   );
 
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           Input Text
         </label>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-100 placeholder-gray-500"
           rows={4}
           placeholder="Enter text to hash..."
         />

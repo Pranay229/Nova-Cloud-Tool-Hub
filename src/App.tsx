@@ -35,10 +35,10 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -57,11 +57,11 @@ function AppContent() {
 
       {user ? (
         showProfile ? (
-          <div className="min-h-screen bg-gray-50 pt-24">
+          <div className="min-h-screen bg-gray-900 pt-24">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <button
                 onClick={() => setShowProfile(false)}
-                className="mb-6 text-gray-600 hover:text-gray-900 transition-colors"
+                className="mb-6 text-gray-400 hover:text-gray-200 transition-colors"
               >
                 ← Back to Dashboard
               </button>
