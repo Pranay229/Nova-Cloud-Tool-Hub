@@ -188,3 +188,4 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     </div>
   );
 }
+
