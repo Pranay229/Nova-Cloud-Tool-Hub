@@ -4,6 +4,19 @@ import App from './App.tsx';
 import './index.css';
 import { validateEnvironment } from './lib/envValidation';
 
+// Browser navigation functions
+function goBack() {
+  window.history.back();
+}
+
+function goForward() {
+  window.history.forward();
+}
+
+// Make functions available globally
+(window as any).goBack = goBack;
+(window as any).goForward = goForward;
+
 try {
   validateEnvironment();
 } catch (error) {

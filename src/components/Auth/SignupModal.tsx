@@ -197,6 +197,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
             >
               Sign in
             </button>
+            
+
           </p>
         </div>
       </div>
