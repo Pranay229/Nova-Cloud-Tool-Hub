@@ -136,7 +136,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-gray-400 mb-8">
-            Join thousands of developers using Nova tools every day.
+            Join thousands of developers using Nova Cloud Stack Tool's tools every day.
           </p>
           <button
             onClick={onGetStarted}
@@ -157,7 +157,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-100">Nova</span>
+                <span className="text-xl font-bold text-gray-100">Nova Cloud Stack Tool's</span>
               </div>
               <p className="text-gray-400 text-sm">
                 Professional developer tools made simple and accessible.
@@ -194,7 +194,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
           <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-400">
-              © 2024 Nova. All rights reserved.
+              © 2024 Nova Cloud Stack Tool's. All rights reserved.
             </p>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-500 hover:text-gray-300 transition-colors">

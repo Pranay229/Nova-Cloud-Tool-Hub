@@ -77,7 +77,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-100 mb-2">Create Account</h2>
-          <p className="text-gray-400">Start your journey with Nova today</p>
+          <p className="text-gray-400">Start your journey with Nova Cloud Stack Tool's today</p>
         </div>
 
         {error && (

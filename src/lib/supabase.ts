@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://fvlptpzwtdjznbkgdhrj.supabase.co';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Note: In Vite, use import.meta.env instead of process.env
-// For client-side, use VITE_SUPABASE_KEY in .env file
-// For server-side/Node.js, use SUPABASE_KEY
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
+if (!supabaseUrl) {
+  throw new Error('Missing VITE_SUPABASE_URL. Please set it in your .env file.');
+}
 
 if (!supabaseKey) {
-  throw new Error('Missing Supabase key. Please set VITE_SUPABASE_KEY or SUPABASE_KEY in your environment variables.');
+  throw new Error('Missing VITE_SUPABASE_ANON_KEY. Please set it in your .env file.');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
