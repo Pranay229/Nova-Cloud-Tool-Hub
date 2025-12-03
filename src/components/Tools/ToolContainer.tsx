@@ -4,6 +4,10 @@ import { UUIDGenerator } from './UUIDGenerator';
 import { PasswordGenerator } from './PasswordGenerator';
 import { JSONFormatter } from './JSONFormatter';
 import { Base64Tool } from './Base64Tool';
+import { URLTool } from './URLTool';
+import { ColorConverter } from './ColorConverter';
+import { TimestampConverter } from './TimestampConverter';
+import { RegexTester } from './RegexTester';
 import { useToolTracking } from '../../hooks/useToolTracking';
 
 interface ToolContainerProps {
@@ -37,6 +41,14 @@ export function ToolContainer({ toolId, onBack }: ToolContainerProps) {
         return <JSONFormatter />;
       case 'base64':
         return <Base64Tool />;
+      case 'url':
+        return <URLTool />;
+      case 'color':
+        return <ColorConverter />;
+      case 'timestamp':
+        return <TimestampConverter />;
+      case 'regex':
+        return <RegexTester />;
       default:
         return (
           <div className="text-center py-12">
