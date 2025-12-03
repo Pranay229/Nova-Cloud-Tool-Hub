@@ -24,9 +24,7 @@ export function Header({ onLoginClick, onSignupClick, onProfileClick }: HeaderPr
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-100"> <span className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </span> Nova Cloud stack Tool's</span>
+            <span className="text-xl font-bold text-gray-100">Nova Cloud stack Tool's</span>
           </div>
 
           {user ? (

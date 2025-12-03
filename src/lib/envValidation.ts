@@ -11,6 +11,19 @@ export function validateEnvironment(): void {
   const missing = requiredEnvVars.filter(key => !import.meta.env[key]);
 
   if (missing.length > 0) {
+    const isDev = import.meta.env.MODE === 'development';
+    
+    if (isDev) {
+      console.warn(
+        `⚠️ Missing Firebase environment variables: ${missing.join(', ')}\n` +
+        'The app will run but Firebase features will not work.\n' +
+        'Please create a .env file with the required variables.'
+      );
+      // Don't throw in development - allow app to start
+      return;
+    }
+    
+    // In production, throw error
     throw new Error(
       `Missing required Firebase environment variables: ${missing.join(', ')}\n` +
       'Please check your .env file and ensure all required variables are set.'

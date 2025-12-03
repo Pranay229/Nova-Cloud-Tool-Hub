@@ -52,17 +52,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             </div>
           </div>
 
-          <div className="mt-16 relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent z-10 pointer-events-none"></div>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl shadow-2xl aspect-video flex items-center justify-center border border-gray-700">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-8 h-8 text-white" />
-                </div>
-                <p className="text-gray-300 font-medium">Professional Developer Tools</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
