@@ -51,7 +51,8 @@ export function ToolContainer({ toolId, onBack }: ToolContainerProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-gray-200 mb-8 transition-colors"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-200 mb-8 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg px-2 py-1"
+          type="button"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Tools</span>

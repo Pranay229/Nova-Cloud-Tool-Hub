@@ -15,9 +15,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <span>Now in Beta</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-100 mb-6 leading-tight">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-100 mb-6 leading-tight" style={{ fontFamily: "'Kaushan Script', cursive" }}>
               Developer Tools
-              <span className="block bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent" style={{ fontFamily: "'PT Serif', serif" }}>
                 Made Simple
               </span>
             </h1>

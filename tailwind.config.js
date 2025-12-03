@@ -21,7 +21,9 @@ export default {
       },
       // Customize fonts
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['PT Serif', 'serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        script: ['Kaushan Script', 'cursive'],
+        serif: ['PT Serif', 'serif'],
       },
       // Customize spacing, border radius, etc.
       borderRadius: {

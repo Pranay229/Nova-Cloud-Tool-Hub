@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Mail, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { validation } from '../../lib/validation';
@@ -16,7 +16,14 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithGoogle } = useAuth();
+  const { user, signUp, signInWithGoogle } = useAuth();
+
+  // Close modal when user successfully signs up
+  useEffect(() => {
+    if (user && isOpen) {
+      onClose();
+    }
+  }, [user, isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -70,6 +77,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign up with Google. Please try again.';
       setError(errorMessage);
     }
+    // Success - the useEffect will close the modal when user state updates
   };
 
   return (
