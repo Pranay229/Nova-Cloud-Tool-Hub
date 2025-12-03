@@ -2,6 +2,7 @@ import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,34 +13,73 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Check if Firebase is properly configured
+const isFirebaseConfigured = () => {
+  return !!(
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.storageBucket &&
+    firebaseConfig.messagingSenderId &&
+    firebaseConfig.appId &&
+    firebaseConfig.apiKey !== 'dev-api-key' &&
+    firebaseConfig.apiKey.startsWith('AIza') // Firebase API keys start with 'AIza'
+  );
+};
+
 // Initialize Firebase app lazily
 function getFirebaseApp() {
   if (getApps().length === 0) {
-    // Only initialize if we have at least some config values
-    // In development, allow partial config
-    if (import.meta.env.MODE === 'development') {
-      // Use default/placeholder values if missing in dev
-      const config = {
-        apiKey: firebaseConfig.apiKey || 'dev-api-key',
-        authDomain: firebaseConfig.authDomain || 'dev.firebaseapp.com',
-        projectId: firebaseConfig.projectId || 'dev-project',
-        storageBucket: firebaseConfig.storageBucket || 'dev-project.appspot.com',
-        messagingSenderId: firebaseConfig.messagingSenderId || '123456789',
-        appId: firebaseConfig.appId || '1:123456789:web:dev',
-      };
-      return initializeApp(config);
-    } else {
-      // In production, require all values
-      return initializeApp(firebaseConfig);
+    if (!isFirebaseConfigured()) {
+      if (import.meta.env.MODE === 'development') {
+        console.warn(
+          '⚠️ Firebase is not configured. Please create a .env file with your Firebase credentials.\n' +
+          'Required variables:\n' +
+          '  VITE_FIREBASE_API_KEY\n' +
+          '  VITE_FIREBASE_AUTH_DOMAIN\n' +
+          '  VITE_FIREBASE_PROJECT_ID\n' +
+          '  VITE_FIREBASE_STORAGE_BUCKET\n' +
+          '  VITE_FIREBASE_MESSAGING_SENDER_ID\n' +
+          '  VITE_FIREBASE_APP_ID\n' +
+          '\nAuthentication features will not work until Firebase is configured.'
+        );
+        // Return a mock app object to prevent crashes
+        return null as any;
+      } else {
+        throw new Error(
+          'Firebase configuration is missing. Please set all required environment variables.'
+        );
+      }
     }
+    return initializeApp(firebaseConfig);
   }
   return getApp();
 }
 
-const firebaseApp = getFirebaseApp();
+let firebaseApp: ReturnType<typeof getFirebaseApp> | null = null;
 
-export const firebaseAuth = getAuth(firebaseApp);
-export const firestore = getFirestore(firebaseApp);
-export const firebaseStorage = getStorage(firebaseApp);
+try {
+  firebaseApp = getFirebaseApp();
+} catch (error) {
+  console.error('Failed to initialize Firebase:', error);
+  firebaseApp = null;
+}
+
+// Export Firebase services only if configured
+export const firebaseAuth = firebaseApp ? getAuth(firebaseApp) : null as any;
+export const firestore = firebaseApp ? getFirestore(firebaseApp) : null as any;
+export const firebaseStorage = firebaseApp ? getStorage(firebaseApp) : null as any;
+
+// Initialize Analytics (only in browser environment)
+let analytics: ReturnType<typeof getAnalytics> | null = null;
+if (firebaseApp && typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(firebaseApp!);
+    }
+  });
+}
+
+export { analytics };
 export default firebaseApp;
 

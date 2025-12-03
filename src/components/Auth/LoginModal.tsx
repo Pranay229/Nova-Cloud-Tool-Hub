@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Mail, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { security } from '../../lib/security';
@@ -15,7 +15,14 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const { user, signIn, signInWithGoogle } = useAuth();
+
+  // Close modal when user successfully logs in
+  useEffect(() => {
+    if (user && isOpen) {
+      onClose();
+    }
+  }, [user, isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -33,7 +40,8 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     const { error } = await signIn(email, password);
 
     if (error) {
-      setError(error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in. Please try again.';
+      setError(errorMessage);
       setLoading(false);
     } else {
       onClose();
@@ -47,10 +55,20 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        setError(error.message || 'Failed to sign in with Google. Please try again.');
+        // Don't show error if user closed the popup intentionally
+        const errorCode = (error as any)?.code || '';
+        if (errorCode === 'auth/popup-closed-by-user') {
+          // User closed the popup - this is normal, don't show an error
+          setGoogleLoading(false);
+          return;
+        }
+        const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google. Please try again.';
+        setError(errorMessage);
+        setGoogleLoading(false);
+      } else {
+        // Success - the useEffect will close the modal when user state updates
         setGoogleLoading(false);
       }
-      // Note: If successful, Supabase will redirect, so we don't need to handle success here
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       setGoogleLoading(false);

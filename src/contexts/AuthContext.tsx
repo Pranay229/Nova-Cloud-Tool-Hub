@@ -28,6 +28,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!firebaseAuth) {
+      console.warn('Firebase Auth is not configured. Authentication features are disabled.');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser: FirebaseUser | null) => {
       setUser(currentUser);
       setSession(currentUser);
@@ -38,6 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
       await createUserWithEmailAndPassword(firebaseAuth, email, password);
       return { error: null };
@@ -47,6 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
       await signInWithEmailAndPassword(firebaseAuth, email, password);
       return { error: null };
@@ -56,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(firebaseAuth, provider);
@@ -66,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!firebaseAuth) return;
     await firebaseSignOut(firebaseAuth);
   };
 

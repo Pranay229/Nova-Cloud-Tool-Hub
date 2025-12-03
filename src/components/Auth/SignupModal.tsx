@@ -61,7 +61,14 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     setError('');
     const { error } = await signInWithGoogle();
     if (error) {
-      setError(error.message);
+      // Don't show error if user closed the popup intentionally
+      const errorCode = (error as any)?.code || '';
+      if (errorCode === 'auth/popup-closed-by-user') {
+        // User closed the popup - this is normal, don't show an error
+        return;
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up with Google. Please try again.';
+      setError(errorMessage);
     }
   };
 
