@@ -1,26 +1,20 @@
 /**
  * Database Configuration
  * 
- * This file contains the PostgreSQL database connection configuration for Supabase.
- * The connection string is used for direct database access, migrations, and backend services.
+ * This file previously contained PostgreSQL configuration for Supabase.
+ * Supabase has been removed; this is kept only as a generic example configuration.
  */
 
-// Extract Supabase project details from connection string
-// Connection string format: postgresql://postgres:[PASSWORD]@db.[PROJECT_ID].supabase.co:5432/postgres
 export const DATABASE_CONFIG = {
-  // Supabase Project ID
-  projectId: 'fvlptpzwtdjznbkgdhrj',
-  
-  // Supabase API URL
-  supabaseUrl: 'https://fvlptpzwtdjznbkgdhrj.supabase.co',
+  // Example project ID (no longer used)
+  projectId: 'example-project-id',
   
   // PostgreSQL Connection String
-  // Replace [YOUR_PASSWORD] with your actual database password
-  // You can find this in Supabase Dashboard > Settings > Database > Connection string
-  connectionString: 'postgresql://postgres:[YOUR_PASSWORD]@db.fvlptpzwtdjznbkgdhrj.supabase.co:5432/postgres',
+  // Replace [YOUR_PASSWORD] and host with your actual database details
+  connectionString: 'postgresql://postgres:[YOUR_PASSWORD]@db.example.com:5432/postgres',
   
   // Database connection parameters
-  host: 'db.fvlptpzwtdjznbkgdhrj.supabase.co',
+  host: 'db.example.com',
   port: 5432,
   database: 'postgres',
   user: 'postgres',

@@ -7,9 +7,9 @@ This document outlines the security measures implemented in the Nova Developer T
 ## Architecture
 
 - **Frontend**: React + Vite + TypeScript (Static hosting)
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Authentication**: Supabase Auth (Email/Password + Google OAuth)
-- **Database**: PostgreSQL with Row Level Security (RLS)
+- **Backend**: Firebase (Firestore + Auth + Storage)
+- **Authentication**: Firebase Auth (Email/Password + Google OAuth)
+- **Database**: Firestore with security rules
 
 ---
 
@@ -20,34 +20,37 @@ This document outlines the security measures implemented in the Nova Developer T
 #### ✅ Multi-Factor Authentication Support
 - Email/password authentication
 - Google OAuth 2.0 integration
-- Secure session management via Supabase
+- Secure session management via Firebase Auth
 
 #### ✅ Password Security
 - Minimum 8 characters
 - Requires uppercase, lowercase, and numbers
 - Password strength validation
-- Server-side hashing (handled by Supabase)
+- Server-side hashing (handled by Firebase Auth)
 
 #### ✅ Session Management
-- HttpOnly cookies (managed by Supabase)
-- Secure token storage
+- Secure token storage handled by Firebase
 - Automatic session refresh
 - Proper logout handling
 
 ### 2. Database Security
 
-#### ✅ Row Level Security (RLS)
-All tables have RLS enabled with policies:
+#### ✅ Firestore Security Rules
+All collections enforce Firebase security rules that scope data access to the authenticated user:
 
-```sql
--- Users can only access their own data
-CREATE POLICY "Users can view own data"
-  ON table_name FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.user_id;
+    }
+  }
+}
 ```
 
-**Protected Tables:**
+**Protected Collections:**
 - `profiles` - User profile information
 - `tool_usage` - Tool usage tracking
 - `user_preferences` - User settings
@@ -57,7 +60,7 @@ CREATE POLICY "Users can view own data"
 #### ✅ Data Validation
 - Pydantic-style validation using TypeScript
 - Input sanitization on all user inputs
-- SQL injection prevention (Supabase parameterized queries)
+- Firestore SDK-enforced parameterization (no raw queries)
 
 ### 3. Security Headers
 
@@ -143,7 +146,7 @@ if (error) {
 
 - Validates required environment variables on startup
 - Prevents app from running with missing config
-- Validates Supabase URL format
+- Validates Firebase configuration variables
 - Checks key lengths
 
 ### 8. Content Security Policy (CSP)
@@ -153,7 +156,7 @@ if (error) {
 **Allowed Sources:**
 - Self (same origin)
 - Google APIs (for OAuth)
-- Supabase endpoints
+- Firebase endpoints
 - Google Fonts (for typography)
 
 **Blocked:**
@@ -184,14 +187,14 @@ Prevents:
 **1. Google Cloud Console:**
 - Create OAuth 2.0 Client ID
 - Add authorized redirect URIs:
-  - `https://[project].supabase.co/auth/v1/callback`
+  - `https://your-app.firebaseapp.com/__/auth/handler`
   - `https://yourdomain.com`
 - Restrict to web application
 
-**2. Supabase Dashboard:**
-- Enable Google provider
+**2. Firebase Console:**
+- Authentication → Sign-in method → Google
 - Add Client ID and Secret
-- Configure Site URL
+- Configure authorized domains/site URL
 
 **Security Features:**
 - State parameter validation (CSRF protection)
@@ -208,7 +211,7 @@ Prevents:
 - [ ] All environment variables set
 - [ ] HTTPS enabled (required)
 - [ ] Security headers configured
-- [ ] RLS policies tested
+- [ ] Firestore security rules tested
 - [ ] Rate limiting tested
 - [ ] Error handling verified
 - [ ] Google OAuth configured correctly
@@ -219,8 +222,12 @@ Prevents:
 
 ```bash
 # Required - Never commit these!
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:000000000000:web:abcdef123456
 
 # Production only
 VITE_ENVIRONMENT=production
@@ -253,12 +260,12 @@ VITE_ENVIRONMENT=production
    - Error rates
    - Response times
 
-### Supabase Dashboard
+### Firebase Console
 
 Monitor in real-time:
 - Auth logs
-- Database logs
-- API analytics
+- Firestore usage
+- Functions (if used)
 - Error tracking
 
 ---
@@ -306,13 +313,10 @@ Monitor in real-time:
    }
    ```
 
-3. **Use Parameterized Queries**
+3. **Use Secure Firestore Queries**
    ```typescript
-   // ✅ Good (Supabase handles this)
-   await supabase
-     .from('users')
-     .select('*')
-     .eq('id', userId);
+   // ✅ Good (Firestore SDK handles parameterization)
+   const userDoc = await getDoc(doc(db, 'users', userId));
    ```
 
 4. **Handle Errors Securely**
@@ -345,10 +349,10 @@ Monitor in real-time:
 ### Regular Maintenance
 
 **Monthly:**
-- Review Supabase security advisories
+- Review Firebase security advisories
 - Update dependencies
 - Review access logs
-- Test RLS policies
+- Test Firestore security rules
 
 **Quarterly:**
 - Security audit
@@ -367,13 +371,13 @@ Monitor in real-time:
 ## 📚 Additional Resources
 
 ### Documentation
-- [Supabase Security Best Practices](https://supabase.com/docs/guides/auth/auth-deep-dive/security)
+- [Firebase Security Rules Best Practices](https://firebase.google.com/docs/rules)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Content Security Policy Guide](https://content-security-policy.com/)
 
 ### Tools
-- [Supabase Auth](https://supabase.com/docs/guides/auth)
-- [Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
+- [Firebase Authentication](https://firebase.google.com/docs/auth)
+- [Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started)
 
 ---
 

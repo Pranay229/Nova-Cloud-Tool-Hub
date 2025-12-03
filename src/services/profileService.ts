@@ -1,4 +1,16 @@
-import { supabase } from '../lib/supabase';
+import { firebaseAuth, firestore, firebaseStorage } from '../lib/firebase';
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from 'firebase/storage';
 
 export interface UserProfile {
   id: string;
@@ -12,135 +24,131 @@ export interface UserProfile {
 
 export const profileService = {
   async getProfile() {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .maybeSingle();
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      console.warn('No authenticated user');
+      return null;
+    }
 
-    if (error) {
+    try {
+      const snapshot = await getDoc(doc(firestore, 'profiles', user.uid));
+
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      return snapshot.data() as UserProfile;
+    } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
     }
-
-    return data as UserProfile | null;
   },
 
   async createProfile(profile: Partial<UserProfile>) {
-    const { data: userData } = await supabase.auth.getUser();
+    const user = firebaseAuth.currentUser;
 
-    if (!userData.user) {
+    if (!user) {
       console.error('No authenticated user');
       return null;
     }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert({
-        id: userData.user.id,
-        email: userData.user.email,
+    try {
+      const now = new Date().toISOString();
+      const payload: UserProfile = {
+        id: user.uid,
+        email: user.email,
         full_name: profile.full_name || null,
         avatar_url: profile.avatar_url || null,
-      })
-      .select()
-      .single();
+        created_at: now,
+        updated_at: now,
+        mfa_enabled: profile.mfa_enabled ?? false,
+      };
 
-    if (error) {
+      await setDoc(doc(firestore, 'profiles', user.uid), payload);
+      return payload;
+    } catch (error) {
       console.error('Error creating profile:', error);
       return null;
     }
-
-    return data as UserProfile;
   },
 
   async updateProfile(updates: Partial<UserProfile>) {
-    const { data: userData } = await supabase.auth.getUser();
+    const user = firebaseAuth.currentUser;
 
-    if (!userData.user) {
+    if (!user) {
       console.error('No authenticated user');
       return null;
     }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userData.user.id)
-      .select()
-      .single();
+    try {
+      const updated = {
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
 
-    if (error) {
+      await updateDoc(doc(firestore, 'profiles', user.uid), updated);
+
+      const snapshot = await getDoc(doc(firestore, 'profiles', user.uid));
+      return snapshot.data() as UserProfile;
+    } catch (error) {
       console.error('Error updating profile:', error);
       return null;
     }
-
-    return data as UserProfile;
   },
 
   async deleteProfile() {
-    const { data: userData } = await supabase.auth.getUser();
+    const user = firebaseAuth.currentUser;
 
-    if (!userData.user) {
+    if (!user) {
       console.error('No authenticated user');
       return false;
     }
 
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userData.user.id);
-
-    if (error) {
+    try {
+      await deleteDoc(doc(firestore, 'profiles', user.uid));
+      return true;
+    } catch (error) {
       console.error('Error deleting profile:', error);
       return false;
     }
-
-    return true;
   },
 
   async uploadAvatar(file: File) {
-    const { data: userData } = await supabase.auth.getUser();
+    const user = firebaseAuth.currentUser;
 
-    if (!userData.user) {
+    if (!user) {
       console.error('No authenticated user');
       return null;
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       throw new Error('Invalid file type. Only images are allowed.');
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       throw new Error('File size exceeds 5MB limit.');
     }
 
-    // Validate file extension
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     if (!fileExt || !allowedExtensions.includes(fileExt)) {
       throw new Error('Invalid file extension.');
     }
 
-    const fileName = `${userData.user.id}-${Math.random()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
+    try {
+      const fileName = `${user.uid}-${crypto.randomUUID()}.${fileExt}`;
+      const storageRef = ref(firebaseStorage, `avatars/${fileName}`);
+      await uploadBytes(storageRef, file);
+      const publicUrl = await getDownloadURL(storageRef);
 
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file);
+      await this.updateProfile({ avatar_url: publicUrl });
 
-    if (uploadError) {
-      console.error('Error uploading avatar:', uploadError);
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
       return null;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    await this.updateProfile({ avatar_url: publicUrl });
-
-    return publicUrl;
   },
 };

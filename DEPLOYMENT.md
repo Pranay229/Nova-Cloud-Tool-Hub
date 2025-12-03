@@ -10,7 +10,7 @@ This guide covers deploying the Nova Developer Tools application with proper sec
 
 ### Required Setup
 
-- [*] Supabase project created
+- [*] Firebase project created
 - [ ] Google OAuth credentials configured
 - [ ] Domain name registered (if using custom domain)
 - [ ] SSL/TLS certificate ready (most hosts provide free)
@@ -83,8 +83,12 @@ This guide covers deploying the Nova Developer Tools application with proper sec
 
 4. **Set Environment Variables**
    ```bash
-   vercel env add VITE_SUPABASE_URL
-   vercel env add VITE_SUPABASE_ANON_KEY
+   vercel env add VITE_FIREBASE_API_KEY
+   vercel env add VITE_FIREBASE_AUTH_DOMAIN
+   vercel env add VITE_FIREBASE_PROJECT_ID
+   vercel env add VITE_FIREBASE_STORAGE_BUCKET
+   vercel env add VITE_FIREBASE_MESSAGING_SENDER_ID
+   vercel env add VITE_FIREBASE_APP_ID
    ```
 
 5. **Deploy**
@@ -153,8 +157,12 @@ This guide covers deploying the Nova Developer Tools application with proper sec
    ```
 
 3. **Set Environment Variables**
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 
 4. **Deploy**
    - Automatic on git push
@@ -173,8 +181,12 @@ This guide covers deploying the Nova Developer Tools application with proper sec
 
 Create `.env.production`:
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-production-anon-key
+VITE_FIREBASE_API_KEY=your-production-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:000000000000:web:abcdef123456
 VITE_ENVIRONMENT=production
 ```
 
@@ -206,10 +218,10 @@ VITE_ENVIRONMENT=production
    - Most platforms auto-provision Let's Encrypt
    - Verify HTTPS works before proceeding
 
-4. **Update Supabase**
-   - Go to Supabase Dashboard
-   - Authentication → URL Configuration
-   - Update Site URL to your domain
+4. **Update Firebase Authentication**
+   - Go to Firebase Console
+   - Authentication → Settings → Authorized domains
+   - Add your production domain
 
 5. **Update Google OAuth**
    - Google Cloud Console
@@ -256,28 +268,25 @@ Target score: A or higher
 2. Click "Sign in with Google"
 3. Complete OAuth flow
 4. Verify redirect back to your domain
-5. Check user created in Supabase
+5. Verify user appears in Firebase Authentication users list
 
 ---
 
 ## 📊 Monitoring Setup
 
-### Supabase Monitoring
+### Firebase Monitoring
 
 1. **Auth Monitoring**
-   - Dashboard → Authentication
-   - Monitor failed logins
-   - Check OAuth success rates
+   - Firebase Console → Authentication
+   - Monitor failed logins/OAuth events
 
 2. **Database Monitoring**
-   - Dashboard → Database
-   - Check query performance
-   - Monitor RLS policy usage
+   - Firebase Console → Firestore
+   - Review read/write usage and indexes
 
-3. **API Analytics**
-   - Dashboard → API
-   - Track request volumes
-   - Monitor error rates
+3. **Cloud Functions / API Analytics (if used)**
+   - Firebase Console → Functions
+   - Track invocation counts and error rates
 
 ### External Monitoring (Optional)
 
@@ -322,16 +331,24 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
       - name: Deploy to Vercel
         run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
 ```
 
 **Required Secrets:**
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 - `VERCEL_TOKEN` (or platform-specific token)
 
 ---
@@ -343,7 +360,7 @@ jobs:
 **Problem:** Google OAuth redirects to wrong URL
 
 **Solution:**
-1. Check Supabase Site URL matches your domain
+1. Ensure your domain is listed under Firebase Authentication → Authorized domains
 2. Verify Google Console has correct redirect URIs
 3. Clear browser cache
 4. Check for trailing slashes
@@ -353,9 +370,9 @@ jobs:
 **Problem:** API requests blocked by CORS
 
 **Solution:**
-1. Supabase automatically handles CORS
+1. Configure Firebase Hosting/Functions to send correct CORS headers
 2. Verify request URLs use HTTPS
-3. Check Supabase URL in environment variables
+3. Check Firebase project configuration and env variables
 
 ### Build Failures
 
@@ -408,17 +425,17 @@ All recommended platforms provide:
 
 ### Monthly Tasks
 
-- [ ] Review auth logs for suspicious activity
-- [ ] Check error rates in Supabase Dashboard
+- [ ] Review Firebase auth logs for suspicious activity
+- [ ] Check Firestore/Functions usage dashboards
 - [ ] Update npm dependencies
 - [ ] Review user feedback
 
 ### Quarterly Tasks
 
-- [ ] Rotate Supabase API keys
+- [ ] Rotate Firebase API keys/service accounts
 - [ ] Update Google OAuth credentials
 - [ ] Run security audit
-- [ ] Review and update RLS policies
+- [ ] Review and update Firestore security rules
 - [ ] Test disaster recovery
 
 ### Annual Tasks
@@ -434,14 +451,14 @@ All recommended platforms provide:
 
 ### Production Issues
 
-1. Check Supabase Dashboard for service status
+1. Check Firebase Status Dashboard for service status
 2. Review application logs
 3. Check monitoring dashboards
 4. Contact support if needed
 
 ### Emergency Contacts
 
-- **Supabase Support**: support.supabase.com
+- **Firebase Support**: firebase.google.com/support
 - **Vercel Support**: vercel.com/support
 - **Security Issues**: See SECURITY.md
 

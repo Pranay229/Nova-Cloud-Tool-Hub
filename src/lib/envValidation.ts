@@ -1,32 +1,20 @@
 const requiredEnvVars = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
 ] as const;
 
 export function validateEnvironment(): void {
-  const missing: string[] = [];
-
-  for (const envVar of requiredEnvVars) {
-    if (!import.meta.env[envVar]) {
-      missing.push(envVar);
-    }
-  }
+  const missing = requiredEnvVars.filter(key => !import.meta.env[key]);
 
   if (missing.length > 0) {
     throw new Error(
-      `Missing required environment variables: ${missing.join(', ')}\n` +
+      `Missing required Firebase environment variables: ${missing.join(', ')}\n` +
       'Please check your .env file and ensure all required variables are set.'
     );
-  }
-
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
-    console.warn('Warning: Supabase URL should use HTTPS in production');
-  }
-
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (anonKey && anonKey.length < 100) {
-    throw new Error('Invalid Supabase anonymous key format');
   }
 }
 

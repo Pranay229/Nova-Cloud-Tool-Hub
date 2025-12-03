@@ -1,4 +1,9 @@
-import { supabase } from '../lib/supabase';
+import { firebaseAuth, firestore } from '../lib/firebase';
+import {
+  doc,
+  getDoc,
+  setDoc,
+} from 'firebase/firestore';
 
 export interface UserPreferences {
   id: string;
@@ -12,52 +17,78 @@ export interface UserPreferences {
 
 export const userPreferencesService = {
   async getPreferences() {
-    const { data, error } = await supabase
-      .from('user_preferences')
-      .select('*')
-      .maybeSingle();
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      console.warn('User must be authenticated to fetch preferences');
+      return null;
+    }
 
-    if (error) {
+    try {
+      const docRef = doc(firestore, 'user_preferences', user.uid);
+      const snapshot = await getDoc(docRef);
+
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      return snapshot.data() as UserPreferences;
+    } catch (error) {
       console.error('Error fetching user preferences:', error);
       return null;
     }
-
-    return data as UserPreferences | null;
   },
 
   async createPreferences(preferences: Partial<UserPreferences>) {
-    const { data, error } = await supabase
-      .from('user_preferences')
-      .insert({
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      console.warn('User must be authenticated to create preferences');
+      return null;
+    }
+
+    try {
+      const now = new Date().toISOString();
+      const prefs: UserPreferences = {
+        id: user.uid,
+        user_id: user.uid,
         theme: preferences.theme || 'light',
         default_tool: preferences.default_tool || null,
         settings: preferences.settings || {},
-      })
-      .select()
-      .single();
+        created_at: now,
+        updated_at: now,
+      };
 
-    if (error) {
+      await setDoc(doc(firestore, 'user_preferences', user.uid), prefs);
+      return prefs;
+    } catch (error) {
       console.error('Error creating user preferences:', error);
       return null;
     }
-
-    return data as UserPreferences;
   },
 
   async updatePreferences(updates: Partial<UserPreferences>) {
-    const { data, error } = await supabase
-      .from('user_preferences')
-      .update(updates)
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id!)
-      .select()
-      .single();
+    const existing = (await this.getPreferences()) || (await this.createPreferences({}));
 
-    if (error) {
-      console.error('Error updating user preferences:', error);
+    if (!existing) {
       return null;
     }
 
-    return data as UserPreferences;
+    try {
+      const updated: UserPreferences = {
+        ...existing,
+        ...updates,
+        settings: {
+          ...(existing.settings || {}),
+          ...(updates.settings || {}),
+        },
+        updated_at: new Date().toISOString(),
+      };
+
+      await setDoc(doc(firestore, 'user_preferences', existing.user_id), updated, { merge: true });
+      return updated;
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      return null;
+    }
   },
 
   async setTheme(theme: 'light' | 'dark') {
@@ -69,12 +100,6 @@ export const userPreferencesService = {
   },
 
   async updateSettings(settings: Record<string, any>) {
-    const currentPrefs = await this.getPreferences();
-    const updatedSettings = {
-      ...currentPrefs?.settings,
-      ...settings,
-    };
-
-    return this.updatePreferences({ settings: updatedSettings });
+    return this.updatePreferences({ settings });
   },
 };

@@ -11,7 +11,7 @@ A production-ready developer tools application with comprehensive security harde
 ### 🏗️ **Core Architecture**
 - **Frontend**: React 18 + Vite + TypeScript
 - **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Backend**: Firebase (Firestore + Auth + Storage)
 - **Authentication**: Email/Password + Google OAuth
 - **Deployment**: Static hosting ready
 
@@ -23,9 +23,9 @@ A production-ready developer tools application with comprehensive security harde
 ✅ Protected routes  
 ✅ Sign out functionality  
 
-### 🗄️ **Database Schema**
+### 🗄️ **Data Model**
 
-**6 Tables with Row Level Security:**
+**Firestore Collections with Security Rules:**
 1. **profiles** - User profile data
 2. **tool_usage** - Track every tool interaction
 3. **user_preferences** - User settings and themes
@@ -34,10 +34,10 @@ A production-ready developer tools application with comprehensive security harde
 6. **secure_notes** - Encrypted note storage
 
 **Security Features:**
-- All tables have RLS enabled
+- Firestore rules restrict access per user
 - Users can only access their own data
-- Automatic triggers for profile creation
-- Database functions for analytics
+- Automatic profile bootstrap on signup
+- Cloud-side aggregations handled via rules/queries
 
 ### 🛠️ **Developer Tools**
 
@@ -146,7 +146,7 @@ project/
 │   ├── hooks/
 │   │   └── useToolTracking.ts      # Tool usage tracking
 │   ├── lib/
-│   │   ├── supabase.ts             # Supabase client
+│   │   ├── firebase.ts             # Firebase client
 │   │   ├── validation.ts           # Input validation
 │   │   ├── security.ts             # Security utilities
 │   │   └── envValidation.ts        # Env validation
@@ -157,8 +157,6 @@ project/
 │   │   └── userPreferencesService.ts # User settings
 │   ├── App.tsx                     # Main app component
 │   └── main.tsx                    # Entry point
-├── supabase/
-│   └── migrations/                 # Database migrations
 ├── SECURITY.md                     # Security documentation
 ├── DEPLOYMENT.md                   # Deployment guide
 └── package.json
@@ -184,7 +182,7 @@ Status: ✅ Passing
 
 ### **Requirements**
 - Node.js 18+
-- Supabase account
+- Firebase project (Auth + Firestore + Storage)
 - Google OAuth credentials (for Google login)
 - HTTPS domain (production)
 
@@ -192,16 +190,20 @@ Status: ✅ Passing
 
 ## 📋 Configuration Required
 
-### **1. Supabase Setup**
+### **1. Firebase Setup**
 ```bash
 # Already configured in .env
-VITE_SUPABASE_URL=your-project-url
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:000000000000:web:abcdef123456
 ```
 
 ### **2. Google OAuth**
 1. Get credentials from Google Cloud Console
-2. Configure in Supabase Dashboard
+2. Configure in Firebase Console
 3. Add redirect URIs
 
 **Full instructions**: See DEPLOYMENT.md
@@ -228,7 +230,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 ### **For Security**
 ✅ OWASP Top 10 protected  
-✅ Row Level Security  
+✅ Firestore security rules  
 ✅ Secure headers  
 ✅ Input validation  
 ✅ Rate limiting  
@@ -253,7 +255,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ✅ **OWASP Top 10** - Protected against common vulnerabilities  
 ✅ **OAuth 2.0** - Industry standard authentication  
 ✅ **GDPR Ready** - User data protection  
-✅ **PostgreSQL RLS** - Database-level security  
+✅ **Firestore Rules** - Database-level security  
 ✅ **HTTPS Only** - Encrypted communication  
 
 ---
