@@ -23,11 +23,16 @@ export function validateEnvironment(): void {
       return;
     }
     
-    // In production, throw error
-    throw new Error(
-      `Missing required Firebase environment variables: ${missing.join(', ')}\n` +
-      'Please check your .env file and ensure all required variables are set.'
-    );
+    // In production, provide helpful error message for Vercel
+    const errorMessage = `Missing required Firebase environment variables: ${missing.join(', ')}\n\n` +
+      'To fix this in Vercel:\n' +
+      '1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables\n' +
+      '2. Add all required VITE_FIREBASE_* variables\n' +
+      '3. Set them for Production, Preview, and Development environments\n' +
+      '4. Redeploy your project\n\n' +
+      'For local development, create a .env file with these variables.';
+    
+    throw new Error(errorMessage);
   }
 }
 
