@@ -70,7 +70,7 @@ export function RegexTester() {
 
       if (flags.global) {
         // Get all matches
-        let match;
+        let match: RegExpExecArray | null;
         const regexForMatch = new RegExp(pattern, flagString);
         while ((match = regexForMatch.exec(testString)) !== null) {
           const groups: string[] = [];
@@ -86,7 +86,9 @@ export function RegexTester() {
           // Extract named groups
           if (match.groups) {
             Object.keys(match.groups).forEach((key) => {
-              groupsObj[key] = match.groups![key];
+              if (match && match.groups) {
+                groupsObj[key] = match.groups[key];
+              }
             });
           }
 
@@ -162,10 +164,6 @@ export function RegexTester() {
     }
 
     try {
-      const regex = new RegExp(
-        pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-        flags.global ? 'g' : ''
-      );
       const parts: React.ReactNode[] = [];
       let lastIndex = 0;
       let matchIndex = 0;

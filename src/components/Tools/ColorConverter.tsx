@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 
-interface ColorFormats {
-  hex: string;
-  rgb: string;
-  hsl: string;
-  rgba: string;
-  hsla: string;
-}
-
 export function ColorConverter() {
   const [hex, setHex] = useState('#3b82f6');
   const [rgb, setRgb] = useState('rgb(59, 130, 246)');

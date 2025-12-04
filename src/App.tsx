@@ -18,7 +18,7 @@ function AppContent() {
 
   // Handle browser back/forward buttons
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
+    const handlePopState = () => {
       // When browser back/forward is used, reset to dashboard
       if (selectedTool) {
         setSelectedTool(null);
