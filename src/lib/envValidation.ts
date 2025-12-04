@@ -23,13 +23,12 @@ export function validateEnvironment(): void {
       return;
     }
     
-    // In production, provide helpful error message for Vercel
+    // In production, provide helpful error message for deployment platforms
     const errorMessage = `Missing required Firebase environment variables: ${missing.join(', ')}\n\n` +
-      'To fix this in Vercel:\n' +
-      '1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables\n' +
-      '2. Add all required VITE_FIREBASE_* variables\n' +
-      '3. Set them for Production, Preview, and Development environments\n' +
-      '4. Redeploy your project\n\n' +
+      'To fix this:\n' +
+      '**Netlify:** Site settings → Environment variables → Add variables → Trigger new deploy\n' +
+      '**Vercel:** Settings → Environment Variables → Add variables → Redeploy\n' +
+      '**Other platforms:** Add VITE_FIREBASE_* variables in your platform\'s environment settings\n\n' +
       'For local development, create a .env file with these variables.';
     
     throw new Error(errorMessage);
