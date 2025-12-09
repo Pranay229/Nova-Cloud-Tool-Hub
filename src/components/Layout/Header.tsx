@@ -20,9 +20,13 @@ export function Header({ onLoginClick, onSignupClick, onProfileClick }: HeaderPr
     <nav className="fixed w-full bg-gray-900/90 backdrop-blur-md border-b border-gray-800 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <img 
+                src="/icon.svg" 
+                alt="Nova Logo" 
+                className="w-10 h-10 rounded-lg"
+              />
             </div>
             <span className="text-xl font-bold text-gray-100">Nova Cloud stack Tool's</span>
           </div>
