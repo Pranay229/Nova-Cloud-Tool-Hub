@@ -1,16 +1,4 @@
-import { firebaseAuth, firestore } from '../lib/firebase';
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit as firestoreLimit,
-  orderBy,
-  query,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 
 export interface UserSession {
   id: string;
@@ -22,36 +10,41 @@ export interface UserSession {
   created_at: string;
 }
 
-function getUserId(): string {
-  return firebaseAuth.currentUser?.uid ?? 'anonymous';
+async function getUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || null;
 }
 
 export const sessionService = {
   async startSession() {
     try {
+      const userId = await getUserId();
+      if (!userId) {
+        console.warn('User must be authenticated to start a session');
+        return null;
+      }
+
       const now = new Date().toISOString();
-      const userId = getUserId();
 
-      const docRef = await addDoc(collection(firestore, 'user_sessions'), {
-        user_id: userId,
-        started_at: now,
-        ended_at: null,
-        tools_used: [],
-        session_duration: null,
-        created_at: now,
-      });
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .insert({
+          user_id: userId,
+          started_at: now,
+          ended_at: null,
+          tools_used: [],
+          session_duration: null,
+        })
+        .select()
+        .single();
 
-      localStorage.setItem('current_session_id', docRef.id);
+      if (error) throw error;
 
-      return {
-        id: docRef.id,
-        user_id: userId,
-        started_at: now,
-        ended_at: null,
-        tools_used: [],
-        session_duration: null,
-        created_at: now,
-      } as UserSession;
+      if (data) {
+        localStorage.setItem('current_session_id', data.id);
+      }
+
+      return data as UserSession;
     } catch (error) {
       console.error('Error starting session:', error);
       return null;
@@ -67,33 +60,37 @@ export const sessionService = {
     }
 
     try {
-      const sessionRef = doc(firestore, 'user_sessions', id);
-      const snapshot = await getDoc(sessionRef);
+      const { data: session, error: fetchError } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (!snapshot.exists()) {
-        console.warn('Session not found in Firestore');
+      if (fetchError || !session) {
+        console.warn('Session not found');
         return null;
       }
 
-      const session = snapshot.data() as Omit<UserSession, 'id'>;
       const endedAt = new Date().toISOString();
       const durationMs = new Date(endedAt).getTime() - new Date(session.started_at).getTime();
       const durationMinutes = Math.max(1, Math.round(durationMs / 60000));
       const session_duration = `${durationMinutes} min`;
 
-      await updateDoc(sessionRef, {
-        ended_at: endedAt,
-        session_duration,
-      });
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .update({
+          ended_at: endedAt,
+          session_duration,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
 
       localStorage.removeItem('current_session_id');
 
-      return {
-        id,
-        ...session,
-        ended_at: endedAt,
-        session_duration,
-      } as UserSession;
+      return data as UserSession;
     } catch (error) {
       console.error('Error ending session:', error);
       return null;
@@ -101,36 +98,41 @@ export const sessionService = {
   },
 
   async addToolToSession(toolId: string): Promise<UserSession | null> {
-    const sessionId = localStorage.getItem('current_session_id');
+    let sessionId = localStorage.getItem('current_session_id');
 
     if (!sessionId) {
-      await this.startSession();
-      return this.addToolToSession(toolId);
+      const newSession = await this.startSession();
+      if (!newSession) return null;
+      sessionId = newSession.id;
     }
 
     try {
-      const sessionRef = doc(firestore, 'user_sessions', sessionId);
-      const snapshot = await getDoc(sessionRef);
+      const { data: session, error: fetchError } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
 
-      if (!snapshot.exists()) {
-        console.error('Session not found in Firestore');
+      if (fetchError || !session) {
+        console.error('Session not found');
         return null;
       }
 
-      const session = snapshot.data() as Omit<UserSession, 'id'>;
       const toolsUsed = Array.isArray(session.tools_used) ? [...session.tools_used] : [];
-
       if (!toolsUsed.includes(toolId)) {
         toolsUsed.push(toolId);
       }
 
-      await updateDoc(sessionRef, { tools_used: toolsUsed });
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .update({ tools_used: toolsUsed })
+        .eq('id', sessionId)
+        .select()
+        .single();
 
-      return {
-        id: sessionId,
-        ...session,
-        tools_used: toolsUsed,
-      } as UserSession;
+      if (error) throw error;
+
+      return data as UserSession;
     } catch (error) {
       console.error('Error adding tool to session:', error);
       return null;
@@ -145,13 +147,17 @@ export const sessionService = {
     }
 
     try {
-      const snapshot = await getDoc(doc(firestore, 'user_sessions', sessionId));
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
 
-      if (!snapshot.exists()) {
+      if (error || !data) {
         return null;
       }
 
-      return { id: sessionId, ...(snapshot.data() as Omit<UserSession, 'id'>) } as UserSession;
+      return data as UserSession;
     } catch (error) {
       console.error('Error fetching current session:', error);
       return null;
@@ -160,19 +166,19 @@ export const sessionService = {
 
   async getSessionHistory(limit: number = 20) {
     try {
-      const userId = getUserId();
-      const q = query(
-        collection(firestore, 'user_sessions'),
-        where('user_id', '==', userId),
-        orderBy('started_at', 'desc'),
-        firestoreLimit(limit),
-      );
-      const snapshot = await getDocs(q);
+      const userId = await getUserId();
+      if (!userId) return [];
 
-      return snapshot.docs.map(docSnapshot => ({
-        id: docSnapshot.id,
-        ...(docSnapshot.data() as Omit<UserSession, 'id'>),
-      })) as UserSession[];
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('started_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return (data || []) as UserSession[];
     } catch (error) {
       console.error('Error fetching session history:', error);
       return [];
@@ -180,9 +186,45 @@ export const sessionService = {
   },
 
   async getSessionStats() {
-    const sessions = await this.getSessionHistory(1000);
+    try {
+      const userId = await getUserId();
+      if (!userId) {
+        return {
+          totalSessions: 0,
+          completedSessions: 0,
+          activeSessions: 0,
+          averageToolsPerSession: 0,
+        };
+      }
 
-    if (sessions.length === 0) {
+      const sessions = await this.getSessionHistory(1000);
+
+      if (sessions.length === 0) {
+        return {
+          totalSessions: 0,
+          completedSessions: 0,
+          activeSessions: 0,
+          averageToolsPerSession: 0,
+        };
+      }
+
+      const totalSessions = sessions.length;
+      const completedSessions = sessions.filter(s => s.ended_at).length;
+      const activeSessions = totalSessions - completedSessions;
+      const averageToolsPerSession =
+        sessions.reduce(
+          (acc, s) => acc + (Array.isArray(s.tools_used) ? s.tools_used.length : 0),
+          0,
+        ) / totalSessions;
+
+      return {
+        totalSessions,
+        completedSessions,
+        activeSessions,
+        averageToolsPerSession: Math.round(averageToolsPerSession * 10) / 10,
+      };
+    } catch (error) {
+      console.error('Error fetching session stats:', error);
       return {
         totalSessions: 0,
         completedSessions: 0,
@@ -190,21 +232,31 @@ export const sessionService = {
         averageToolsPerSession: 0,
       };
     }
+  },
 
-    const totalSessions = sessions.length;
-    const completedSessions = sessions.filter(s => s.ended_at).length;
-    const activeSessions = totalSessions - completedSessions;
-    const averageToolsPerSession =
-      sessions.reduce(
-        (acc, s) => acc + (Array.isArray(s.tools_used) ? s.tools_used.length : 0),
-        0,
-      ) / totalSessions;
+  // Subscribe to real-time updates for sessions
+  async subscribeToSessions(callback: (payload: { eventType: string; new: UserSession; old?: UserSession }) => void) {
+    const userId = await getUserId();
+    if (!userId) return null;
 
-    return {
-      totalSessions,
-      completedSessions,
-      activeSessions,
-      averageToolsPerSession: Math.round(averageToolsPerSession * 10) / 10,
-    };
+    return supabase
+      .channel('user_sessions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_sessions',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          callback({
+            eventType: payload.eventType,
+            new: payload.new as UserSession,
+            old: payload.old as UserSession,
+          });
+        }
+      )
+      .subscribe();
   },
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { TrendingUp, Clock, Zap, Activity } from 'lucide-react';
 import { toolUsageService } from '../../services/toolUsageService';
 import { sessionService } from '../../services/sessionService';
+import { supabase } from '../../lib/supabase';
 
 export function UserStats() {
   const [stats, setStats] = useState<{
@@ -20,8 +21,8 @@ export function UserStats() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
+  const fetchStats = async () => {
+    try {
       const userStats = await toolUsageService.getToolUsageStats();
       const sessStats = await sessionService.getSessionStats();
 
@@ -39,9 +40,81 @@ export function UserStats() {
       }
 
       setLoading(false);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setLoading(false);
+    }
+  };
+
+  // Real-time subscription with user ID
+  useEffect(() => {
+    let toolUsageChannel: any = null;
+    let sessionsChannel: any = null;
+
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      // Subscribe to tool_usage changes for this user
+      toolUsageChannel = supabase
+        .channel(`tool_usage_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'tool_usage',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            // Refresh stats immediately when tool usage changes
+            fetchStats();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Subscribed to tool_usage real-time updates');
+          }
+        });
+
+      // Subscribe to user_sessions changes for this user
+      sessionsChannel = supabase
+        .channel(`user_sessions_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_sessions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            // Refresh stats immediately when sessions change
+            fetchStats();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Subscribed to user_sessions real-time updates');
+          }
+        });
     };
 
-    fetchStats();
+    setupRealtime();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      if (toolUsageChannel) {
+        supabase.removeChannel(toolUsageChannel);
+      }
+      if (sessionsChannel) {
+        supabase.removeChannel(sessionsChannel);
+      }
+    };
   }, []);
 
   if (loading) {
@@ -54,7 +127,13 @@ export function UserStats() {
 
   return (
     <div className="bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 border border-gray-700">
-      <h2 className="text-2xl font-bold text-gray-100 mb-6">Your Activity</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-100">Your Activity</h2>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-400">Live</span>
+        </div>
+      </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="p-6 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 rounded-xl border border-blue-800/50">
@@ -92,7 +171,7 @@ export function UserStats() {
             <Clock className="w-8 h-8 text-orange-400" />
           </div>
           <div className="text-3xl font-bold text-gray-100 mb-1">
-            {sessionStats?.averageToolsPerSession.toFixed(1) || 0}
+            {sessionStats?.averageToolsPerSession.toFixed(1) || '0.0'}
           </div>
           <div className="text-sm text-gray-400">Avg Tools/Session</div>
         </div>

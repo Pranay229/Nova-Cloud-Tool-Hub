@@ -1,13 +1,4 @@
-import { firebaseAuth, firestore } from '../lib/firebase';
-import {
-  addDoc,
-  collection,
-  getDocs,
-  limit as firestoreLimit,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 
 export interface ToolUsage {
   id: string;
@@ -16,6 +7,7 @@ export interface ToolUsage {
   tool_name: string;
   used_at: string;
   metadata?: Record<string, any>;
+  created_at?: string;
 }
 
 export interface UserStats {
@@ -27,30 +19,27 @@ export interface UserStats {
 
 export const toolUsageService = {
   async trackToolUsage(toolId: string, toolName: string, metadata?: Record<string, any>) {
-    const user = firebaseAuth.currentUser;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.warn('User must be authenticated to track tool usage');
       return null;
     }
 
     try {
-      const usedAt = new Date().toISOString();
-      const docRef = await addDoc(collection(firestore, 'tool_usage'), {
-        user_id: user.uid,
-        tool_id: toolId,
-        tool_name: toolName,
-        metadata: metadata || {},
-        used_at: usedAt,
-      });
+      const { data, error } = await supabase
+        .from('tool_usage')
+        .insert({
+          user_id: user.id,
+          tool_id: toolId,
+          tool_name: toolName,
+          metadata: metadata || {},
+        })
+        .select()
+        .single();
 
-      return {
-        id: docRef.id,
-        user_id: user.uid,
-        tool_id: toolId,
-        tool_name: toolName,
-        metadata: metadata || {},
-        used_at: usedAt,
-      } as ToolUsage;
+      if (error) throw error;
+
+      return data as ToolUsage;
     } catch (error) {
       console.error('Error tracking tool usage:', error);
       return null;
@@ -58,24 +47,22 @@ export const toolUsageService = {
   },
 
   async getToolUsageHistory(limit: number = 50) {
-    const user = firebaseAuth.currentUser;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return [];
     }
 
     try {
-      const q = query(
-        collection(firestore, 'tool_usage'),
-        where('user_id', '==', user.uid),
-        orderBy('used_at', 'desc'),
-        firestoreLimit(limit),
-      );
-      const snapshot = await getDocs(q);
+      const { data, error } = await supabase
+        .from('tool_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('used_at', { ascending: false })
+        .limit(limit);
 
-      return snapshot.docs.map(docSnapshot => ({
-        id: docSnapshot.id,
-        ...(docSnapshot.data() as Omit<ToolUsage, 'id'>),
-      })) as ToolUsage[];
+      if (error) throw error;
+
+      return (data || []) as ToolUsage[];
     } catch (error) {
       console.error('Error fetching tool usage history:', error);
       return [];
@@ -83,8 +70,8 @@ export const toolUsageService = {
   },
 
   async getToolUsageStats() {
-    const history = await this.getToolUsageHistory(1000);
-    if (history.length === 0) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return {
         total_tools_used: 0,
         favorite_tool: null,
@@ -93,48 +80,88 @@ export const toolUsageService = {
       };
     }
 
-    const total_tools_used = history.length;
-    const last_used = history[0]?.used_at ?? null;
+    try {
+      // Use the database function if available, otherwise calculate manually
+      const { data: functionData, error: functionError } = await supabase
+        .rpc('get_user_stats');
 
-    const counts = history.reduce((acc, item) => {
-      acc[item.tool_id] = (acc[item.tool_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    let favorite_tool: string | null = null;
-    let maxCount = 0;
-    Object.entries(counts).forEach(([toolId, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        favorite_tool = toolId;
+      if (!functionError && functionData && functionData.length > 0) {
+        const stats = functionData[0];
+        return {
+          total_tools_used: Number(stats.total_tools_used) || 0,
+          favorite_tool: stats.favorite_tool,
+          total_sessions: Number(stats.total_sessions) || 0,
+          last_used: stats.last_used,
+        } as UserStats;
       }
-    });
 
-    return {
-      total_tools_used,
-      favorite_tool,
-      total_sessions: 0,
-      last_used,
-    } as UserStats;
+      // Fallback: Calculate manually
+      const history = await this.getToolUsageHistory(1000);
+      if (history.length === 0) {
+        return {
+          total_tools_used: 0,
+          favorite_tool: null,
+          total_sessions: 0,
+          last_used: null,
+        };
+      }
+
+      const toolIds = new Set(history.map(item => item.tool_id));
+      const total_tools_used = toolIds.size;
+      const last_used = history[0]?.used_at ?? null;
+
+      const counts = history.reduce((acc, item) => {
+        acc[item.tool_id] = (acc[item.tool_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      let favorite_tool: string | null = null;
+      let maxCount = 0;
+      Object.entries(counts).forEach(([toolId, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          favorite_tool = history.find(h => h.tool_id === toolId)?.tool_name || toolId;
+        }
+      });
+
+      // Get session count
+      const { count: sessionCount } = await supabase
+        .from('user_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      return {
+        total_tools_used,
+        favorite_tool,
+        total_sessions: sessionCount || 0,
+        last_used,
+      } as UserStats;
+    } catch (error) {
+      console.error('Error fetching tool usage stats:', error);
+      return {
+        total_tools_used: 0,
+        favorite_tool: null,
+        total_sessions: 0,
+        last_used: null,
+      };
+    }
   },
 
   async getToolUsageByToolId(toolId: string) {
-    const user = firebaseAuth.currentUser;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
     try {
-      const q = query(
-        collection(firestore, 'tool_usage'),
-        where('user_id', '==', user.uid),
-        where('tool_id', '==', toolId),
-        orderBy('used_at', 'desc'),
-      );
-      const snapshot = await getDocs(q);
+      const { data, error } = await supabase
+        .from('tool_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('tool_id', toolId)
+        .order('used_at', { ascending: false });
 
-      return snapshot.docs.map(docSnapshot => ({
-        id: docSnapshot.id,
-        ...(docSnapshot.data() as Omit<ToolUsage, 'id'>),
-      })) as ToolUsage[];
+      if (error) throw error;
+
+      return (data || []) as ToolUsage[];
     } catch (error) {
       console.error('Error fetching tool usage by tool id:', error);
       return [];
@@ -158,5 +185,31 @@ export const toolUsageService = {
     return Object.values(toolCounts)
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
+  },
+
+  // Subscribe to real-time updates for tool usage
+  subscribeToToolUsage(callback: (payload: { eventType: string; new: ToolUsage; old?: ToolUsage }) => void) {
+    const { data: { user } } = supabase.auth.getUser();
+    if (!user) return null;
+
+    return supabase
+      .channel('tool_usage_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tool_usage',
+          filter: `user_id=eq.${user.then(u => u.user?.id || '')}`,
+        },
+        (payload) => {
+          callback({
+            eventType: payload.eventType,
+            new: payload.new as ToolUsage,
+            old: payload.old as ToolUsage,
+          });
+        }
+      )
+      .subscribe();
   },
 };

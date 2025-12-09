@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.87.0",
     "cookie-session": "^2.1.1",
     "express": "^5.1.0",
     "firebase": "^11.10.0",
