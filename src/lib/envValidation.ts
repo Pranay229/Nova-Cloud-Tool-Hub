@@ -1,10 +1,5 @@
 const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN',
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID',
+  'VITE_SUPABASE_KEY',
 ] as const;
 
 export function validateEnvironment(): void {
@@ -15,21 +10,22 @@ export function validateEnvironment(): void {
     
     if (isDev) {
       console.warn(
-        `⚠️ Missing Firebase environment variables: ${missing.join(', ')}\n` +
-        'The app will run but Firebase features will not work.\n' +
-        'Please create a .env file with the required variables.'
+        `⚠️ Missing Supabase environment variables: ${missing.join(', ')}\n` +
+        'The app will run but Supabase features will not work.\n' +
+        'Please create a .env file with VITE_SUPABASE_KEY.\n' +
+        'Get your key from: Supabase Dashboard > Settings > API > anon/public key'
       );
       // Don't throw in development - allow app to start
       return;
     }
     
     // In production, provide helpful error message for deployment platforms
-    const errorMessage = `Missing required Firebase environment variables: ${missing.join(', ')}\n\n` +
+    const errorMessage = `Missing required Supabase environment variables: ${missing.join(', ')}\n\n` +
       'To fix this:\n' +
-      '**Netlify:** Site settings → Environment variables → Add variables → Trigger new deploy\n' +
-      '**Vercel:** Settings → Environment Variables → Add variables → Redeploy\n' +
-      '**Other platforms:** Add VITE_FIREBASE_* variables in your platform\'s environment settings\n\n' +
-      'For local development, create a .env file with these variables.';
+      '**Netlify:** Site settings → Environment variables → Add VITE_SUPABASE_KEY → Trigger new deploy\n' +
+      '**Vercel:** Settings → Environment Variables → Add VITE_SUPABASE_KEY → Redeploy\n' +
+      '**Other platforms:** Add VITE_SUPABASE_KEY in your platform\'s environment settings\n\n' +
+      'Get your key from: Supabase Dashboard > Settings > API > anon/public key';
     
     throw new Error(errorMessage);
   }

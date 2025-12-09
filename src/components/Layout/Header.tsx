@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Sparkles, LogOut, User } from 'lucide-react';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
@@ -21,10 +21,9 @@ export function Header({ onLoginClick, onSignupClick, onProfileClick }: HeaderPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
               <img 
-                src="/icoh
-                n.svg" 
+                src="/icon.svg" 
                 alt="Nova Logo" 
                 className="w-10 h-10 rounded-lg"
               />
