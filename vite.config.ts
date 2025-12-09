@@ -63,6 +63,39 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Split node_modules into separate chunks
+          if (id.includes('node_modules')) {
+            // React and React DOM
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            // Firebase modules
+            if (id.includes('firebase')) {
+              return 'firebase-vendor';
+            }
+            // UI icons library
+            if (id.includes('lucide-react')) {
+              return 'ui-vendor';
+            }
+            // Other vendor libraries
+            return 'vendor';
+          }
+          // Split large tool components
+          if (id.includes('/components/Tools/')) {
+            const toolName = id.split('/components/Tools/')[1]?.split('.')[0];
+            if (toolName) {
+              return `tool-${toolName}`;
+            }
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
