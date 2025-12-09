@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import type { User } from 'firebase/auth';
+import { firebaseAuth } from './firebase';
 
 export const security = {
   sanitizeError: (error: unknown): string => {
@@ -77,13 +78,16 @@ export const security = {
   },
 
   checkAuth: async (): Promise<boolean> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      return !!session?.user;
-    } catch (error) {
-      console.error('Error checking auth:', error);
-      return false;
+    if (firebaseAuth.currentUser) {
+      return true;
     }
+
+    return new Promise(resolve => {
+      const unsubscribe = firebaseAuth.onAuthStateChanged((user: User | null) => {
+        unsubscribe();
+        resolve(!!user);
+      });
+    });
   },
 
   logSecurityEvent: (event: string, details?: unknown) => {

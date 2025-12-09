@@ -1,10 +1,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import {
+  User as FirebaseUser,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
+import { firebaseAuth } from '../lib/firebase';
 
 interface AuthContextType {
-  user: User | null;
-  session: User | null;
+  user: FirebaseUser | null;
+  session: FirebaseUser | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: unknown }>;
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
@@ -15,70 +23,66 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [session, setSession] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setSession(session?.user ?? null);
+    if (!firebaseAuth) {
+      console.warn('Firebase Auth is not configured. Authentication features are disabled.');
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser: FirebaseUser | null) => {
+      setUser(currentUser);
+      setSession(currentUser);
       setLoading(false);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setSession(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string) => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      return { error };
+      await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      return { error: null };
     } catch (error) {
       return { error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      return { error };
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+      return { error: null };
     } catch (error) {
       return { error };
     }
   };
 
   const signInWithGoogle = async () => {
+    if (!firebaseAuth) {
+      return { error: new Error('Firebase is not configured. Please set up your Firebase credentials.') };
+    }
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      return { error };
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(firebaseAuth, provider);
+      return { error: null };
     } catch (error) {
       return { error };
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (!firebaseAuth) return;
+    await firebaseSignOut(firebaseAuth);
   };
 
   return (

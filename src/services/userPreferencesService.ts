@@ -19,18 +19,14 @@ export const userPreferencesService = {
   async getPreferences() {
     const user = firebaseAuth.currentUser;
     if (!user) {
-      console.warn('User must be authenticated to fetch preferences');
       return null;
     }
 
     try {
-      const docRef = doc(firestore, 'user_preferences', user.uid);
-      const snapshot = await getDoc(docRef);
-
+      const snapshot = await getDoc(doc(firestore, 'user_preferences', user.uid));
       if (!snapshot.exists()) {
         return null;
       }
-
       return snapshot.data() as UserPreferences;
     } catch (error) {
       console.error('Error fetching user preferences:', error);
@@ -41,7 +37,6 @@ export const userPreferencesService = {
   async createPreferences(preferences: Partial<UserPreferences>) {
     const user = firebaseAuth.currentUser;
     if (!user) {
-      console.warn('User must be authenticated to create preferences');
       return null;
     }
 
@@ -57,7 +52,8 @@ export const userPreferencesService = {
         updated_at: now,
       };
 
-      await setDoc(doc(firestore, 'user_preferences', user.uid), prefs);
+      const docRef = doc(firestore, 'user_preferences', user.uid);
+      await setDoc(docRef, prefs);
       return prefs;
     } catch (error) {
       console.error('Error creating user preferences:', error);
@@ -66,24 +62,28 @@ export const userPreferencesService = {
   },
 
   async updatePreferences(updates: Partial<UserPreferences>) {
-    const existing = (await this.getPreferences()) || (await this.createPreferences({}));
-
-    if (!existing) {
+    const user = firebaseAuth.currentUser;
+    if (!user) {
       return null;
     }
 
     try {
+      const existing = await this.getPreferences();
       const updated: UserPreferences = {
-        ...existing,
+        ...(existing || {
+          id: user.uid,
+          user_id: user.uid,
+          theme: 'light',
+          default_tool: null,
+          settings: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }),
         ...updates,
-        settings: {
-          ...(existing.settings || {}),
-          ...(updates.settings || {}),
-        },
         updated_at: new Date().toISOString(),
       };
 
-      await setDoc(doc(firestore, 'user_preferences', existing.user_id), updated, { merge: true });
+      await setDoc(doc(firestore, 'user_preferences', user.uid), updated, { merge: true });
       return updated;
     } catch (error) {
       console.error('Error updating user preferences:', error);
@@ -100,6 +100,12 @@ export const userPreferencesService = {
   },
 
   async updateSettings(settings: Record<string, any>) {
-    return this.updatePreferences({ settings });
+    const existing = await this.getPreferences();
+    const updatedSettings = {
+      ...(existing?.settings || {}),
+      ...settings,
+    };
+
+    return this.updatePreferences({ settings: updatedSettings });
   },
 };

@@ -3,28 +3,12 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { validateEnvironment } from './lib/envValidation';
-import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Browser navigation functions
-function goBack() {
-  window.history.back();
-}
-
-function goForward() {
-  window.history.forward();
-}
-
-// Make functions available globally
-(window as any).goBack = goBack;
-(window as any).goForward = goForward;
-
-function renderError(error: unknown) {
-  const root = document.getElementById('root');
-  if (!root) {
-    console.error('Root element not found!');
-    return;
-  }
-  
+try {
+  validateEnvironment();
+} catch (error) {
+  console.error('Environment validation failed:', error);
+  const root = document.getElementById('root')!;
   root.innerHTML = ''; // Clear existing content safely
   
   const container = document.createElement('div');
@@ -42,7 +26,7 @@ function renderError(error: unknown) {
   message.textContent = 'The application is not properly configured. Please contact support.';
   
   const errorMsg = document.createElement('p');
-  errorMsg.style.cssText = 'color: #6b7280; font-size: 14px; word-break: break-word;';
+  errorMsg.style.cssText = 'color: #6b7280; font-size: 14px;';
   errorMsg.textContent = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
   
   card.appendChild(title);
@@ -50,24 +34,12 @@ function renderError(error: unknown) {
   card.appendChild(errorMsg);
   container.appendChild(card);
   root.appendChild(container);
+  
+  throw error;
 }
 
-try {
-  validateEnvironment();
-  
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    throw new Error('Root element with id "root" not found in the DOM');
-  }
-  
-  createRoot(rootElement).render(
-    <StrictMode>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </StrictMode>
-  );
-} catch (error) {
-  console.error('Application initialization failed:', error);
-  renderError(error);
-}
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
